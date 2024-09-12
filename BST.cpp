@@ -119,7 +119,24 @@ public:
         }
     }
 
-    
+    void print_postorder() {
+        postorder(root, 0);
+    }
+
+    void postorder(tree_node* p, int indent) {
+        if (p != nullptr) {
+            if (p->right) {
+                postorder(p->right, indent + 6);
+            }
+            if (indent) {
+                cout << setw(indent) << ' ';
+            }
+            cout << p->data << endl;
+            if (p->left) {
+                postorder(p->left, indent + 6);
+            }
+        }
+    }
 
     
 };
