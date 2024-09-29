@@ -2,129 +2,97 @@
 #include <iomanip>
 using namespace std;
 
+class node{
+    public:
+    node* right;
+    node* left;
+    int data;
+
+    node(int data){
+        this->data=data;
+        this->left=NULL;
+        this->right=NULL;
+    }
+};
+
 class BinarySearchTree {
-private:
-    struct tree_node {
-        tree_node* left;
-        tree_node* right;
-        int data;
-    };
-    tree_node* root;
-
-public:
-    BinarySearchTree() {
-        root = nullptr;
-    }
-
-    bool isEmpty() const {
-        return root == nullptr;
-    }
-
-    void insert(int val) {
-        tree_node* newNode = new tree_node;
-        newNode->data = val;
-        newNode->left = nullptr;
-        newNode->right = nullptr;
-        if (isEmpty()) {
-            root = newNode;
-        } else {
-            tree_node* current = root;
-            tree_node* parent = nullptr;
-            while (current) {
-                parent = current;
-                if (val < current->data)
-                    current = current->left;
-                else
-                    current = current->right;
-            }
-            if (val < parent->data)
-                parent->left = newNode;
-            else
-                parent->right = newNode;
+    private:
+    node* findnode(node* root){
+        if(root->right){
+            root=root->right;
         }
+        while(root->left){
+            root=root->left;
+        }
+        return root;
     }
 
-    void remove(int val) {
-        if (isEmpty()) {
-            cout << "This Tree is empty!" << endl;
+    public:
+    void insert(int d,node* &root){
+        
+        if(root==NULL){
+            root=new node(d);
             return;
         }
-
-        tree_node* curr = root;
-        tree_node* parent = nullptr;
-        bool found = false;
-
-        // Locate the node to be deleted and its parent
-        while (curr != nullptr) {
-            if (curr->data == val) {
-                found = true;
-                break;
-            } else {
-                parent = curr;
-                if (val > curr->data)
-                    curr = curr->right;
-                else
-                    curr = curr->left;
-            }
+        else if(d>=root->data){
+           insert(d,root->right);
         }
-
-        if (!found) {
-            cout << "Data not found!" << endl;
-            return;
-        }
-
-        // Case 1: Node with only one child or no child
-        if (curr->left == nullptr || curr->right == nullptr) {
-            tree_node* temp = (curr->left != nullptr) ? curr->left : curr->right;
-
-            // No child case
-            if (temp == nullptr) {
-                if (parent == nullptr)
-                    root = nullptr;
-                else if (curr == parent->left)
-                    parent->left = nullptr;
-                else
-                    parent->right = nullptr;
-                delete curr;
-            } else {
-                // One child case
-                if (parent == nullptr)
-                    root = temp;
-                else if (curr == parent->left)
-                    parent->left = temp;
-                else
-                    parent->right = temp;
-                delete curr;
-            }
-        } else {
-            // Case 2: Node with two children
-            tree_node* successor = curr->right;
-            tree_node* successorParent = nullptr;
-
-            while (successor->left != nullptr) {
-                successorParent = successor;
-                successor = successor->left;
-            }
-
-            // Copy the inorder successor's data to this node
-            curr->data = successor->data;
-
-            // Delete the inorder successor
-            if (successorParent != nullptr)
-                successorParent->left = nullptr;
-            else
-                curr->right = nullptr;
-
-            delete successor;
+        else{
+            insert(d,root->left);
         }
     }
 
-    void print_postorder() {
-        postorder(root, 0);
+    
+
+    node* remove( node* root,int x) {
+        if (root==NULL) {
+            cout << "Node not found! " << endl;
+            return root;
+        }
+        if(root->data==x){
+            //0 child, leaf node
+            if(root->left==NULL && root->right==NULL){
+                delete root;
+                return NULL;
+            }
+            // 1 child
+
+            // left child
+            if(root->left!=NULL && root->right==NULL){
+                node* temp=root->left;
+                delete root;
+                return temp;
+            }
+            //right child
+            if(root->left==NULL && root->right!=NULL){
+                node* temp=root->right;
+                delete root;
+                return temp;
+            }
+
+            //two childs
+            if(root->left!=NULL && root->right!=NULL){
+                //find minimum node from the right subtree
+                node* pred= findnode(root);
+                cout<<"data to be replaced : "<<pred->data<<endl;
+                root->data=pred->data;
+                remove(root->right,pred->data);
+                return root;
+            }
+            
+        }
+        else if(root->data>x){
+            root->left=remove(root->left,x);
+        }
+        else{
+            root->right=remove(root->right,x);
+        }
+        return root;
     }
 
-    void postorder(tree_node* p, int indent) {
-        if (p != nullptr) {
+
+    void postorder(node* p, int indent) {
+        if (p != NULL) {
             if (p->right) {
                 postorder(p->right, indent + 6);
             }
@@ -143,8 +111,8 @@ public:
 
 int main() {
     BinarySearchTree bst;
-    int input, insert, del;
-
+    int inp, ins, del;
+    node* root=NULL;
     while (true) {
         cout << "\n\n Binary Search Tree Operations \n";
         cout << " ----------------------------- \n";
@@ -153,23 +121,32 @@ int main() {
         cout << " 3. Removal \n";
         cout << " 4. Exit \n";
         cout << " Enter your choice: ";
-        cin >> input;
+        cin >> inp;
 
-        switch (input) {
+        switch (inp) {
         case 1:
             cout << " Enter Number to be inserted: ";
-            cin >> insert;
-            bst.insert(insert);
+           
+            cin >> ins;
+            bst.insert(ins,root);
             break;
         case 2:
-            cout << " Printing in Postorder Traversal\n";
+            cout << " Printing in Tree \n";
             cout << " -------------------------------\n";
-            bst.print_postorder();
+            if(root==NULL){
+                cout<<"Tree is empty "<<endl;
+                break;
+            }
+            bst.postorder(root,0);
             break;
         case 3:
             cout << " Enter data to be deleted: ";
             cin >> del;
-            bst.remove(del);
+            if(root==NULL){
+                cout<<"Tree is empty "<<endl;
+                break;
+            }
+            bst.remove(root,del);
             break;
         case 4:
             return 0;
